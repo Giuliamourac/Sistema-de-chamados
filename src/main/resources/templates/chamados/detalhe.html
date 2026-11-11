@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Solicitação | Sabesp')}"></head>
+<body class="tema-wizard">
+
+<header th:replace="~{fragments/layout :: cabecalho-wizard}"></header>
+
+<main class="container container--wizard">
+    <p class="pagina__kicker" th:text="${sucesso} ? 'Solicitação registrada' : 'Acompanhamento'">Acompanhamento</p>
+    <h1 class="pagina__titulo"
+        th:text="${sucesso} ? 'Recebemos a sua solicitação!' : ${chamado.tipoOcorrencia}">Solicitação</h1>
+    <p class="pagina__subtitulo">
+        Protocolo <strong th:text="${chamado.protocolo}">CH-2026-000000</strong>
+    </p>
+
+    <div class="wizard wizard--detalhe">
+        <section class="card">
+            <h2 class="card__titulo">Detalhes da solicitação</h2>
+            <dl class="detalhes">
+                <dt>Tipo de problema</dt>
+                <dd th:text="${chamado.tipoOcorrencia}"></dd>
+
+                <dt>Endereço</dt>
+                <dd th:text="${chamado.enderecoCompleto}"></dd>
+
+                <dt th:if="${chamado.pontoReferencia != null}">Ponto de referência</dt>
+                <dd th:if="${chamado.pontoReferencia != null}" th:text="${chamado.pontoReferencia}"></dd>
+
+                <dt>Descrição</dt>
+                <dd class="detalhes__texto" th:text="${chamado.descricao}"></dd>
+
+                <dt>Aberta em</dt>
+                <dd th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy HH:mm')}"></dd>
+            </dl>
+        </section>
+
+        <aside class="lateral">
+            <div class="card card--lateral">
+                <h2 class="card__titulo">Status</h2>
+                <span class="selo selo--grande" th:classappend="'selo--' + ${chamado.statusClasse}"
+                      th:text="${chamado.statusRotulo}">Em andamento</span>
+                <div class="tempo tempo--lateral">
+                    <strong>Tempo em aberto</strong>
+                    <span th:text="${chamado.tempoEmAberto}">4 dias e 7 horas</span>
+                </div>
+            </div>
+
+            <a class="btn-passo" th:href="@{/chamados}">
+                <span>Ver minhas solicitações</span> <span aria-hidden="true">→</span>
+            </a>
+            <a class="link-secundario" th:href="@{/chamados/novo}">Abrir nova solicitação</a>
+        </aside>
+    </div>
+</main>
+
+</body>
+</html>

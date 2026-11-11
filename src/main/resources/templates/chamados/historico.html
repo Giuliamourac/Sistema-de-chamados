@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Histórico de solicitações | Sabesp')}"></head>
+<body class="tema-portal">
+
+<header th:replace="~{fragments/layout :: cabecalho-portal}"></header>
+
+<main class="container container--portal">
+    <p class="pagina__kicker pagina__kicker--portal">Histórico de solicitações</p>
+    <h1 class="pagina__titulo pagina__titulo--portal">Histórico de solicitações feias</h1>
+    <p class="pagina__subtitulo">Confira o histórico das solicitações feitas por você e seus resultados</p>
+
+    <!-- Barra com "+" : abre a busca por protocolo, bairro, tipo ou logradouro -->
+    <section class="barra-busca" th:classappend="${q != null and !q.isBlank()} ? 'barra-busca--aberta'">
+        <button type="button" class="barra-busca__botao" id="barra-busca-botao"
+                aria-expanded="false" aria-controls="barra-busca-painel" aria-label="Buscar solicitações">
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" aria-hidden="true">
+                <circle cx="13" cy="13" r="11"/>
+                <line x1="13" y1="7.5" x2="13" y2="18.5"/>
+                <line x1="7.5" y1="13" x2="18.5" y2="13"/>
+            </svg>
+        </button>
+        <form class="barra-busca__painel" id="barra-busca-painel" th:action="@{/chamados/historico}" method="get">
+            <input type="text" name="q" th:value="${q}"
+                   placeholder="Buscar por protocolo, bairro, tipo ou logradouro">
+            <button type="submit">Buscar</button>
+            <a th:if="${q != null and !q.isBlank()}" th:href="@{/chamados/historico}">Limpar</a>
+        </form>
+    </section>
+
+    <section class="lista-cartoes lista-cartoes--historico">
+        <p class="vazio" th:if="${#lists.isEmpty(chamados)}">Nenhuma solicitação encontrada.</p>
+        <th:block th:each="c : ${chamados}">
+            <article th:replace="~{fragments/layout :: cartao(${c}, true)}"></article>
+        </th:block>
+    </section>
+</main>
+
+<script>
+    (function () {
+        var barra = document.querySelector('.barra-busca');
+        var botao = document.getElementById('barra-busca-botao');
+        if (!barra || !botao) return;
+        function sincronizar() {
+            botao.setAttribute('aria-expanded', barra.classList.contains('barra-busca--aberta') ? 'true' : 'false');
+        }
+        botao.addEventListener('click', function () {
+            barra.classList.toggle('barra-busca--aberta');
+            sincronizar();
+        });
+        sincronizar();
+    })();
+</script>
+</body>
+</html>

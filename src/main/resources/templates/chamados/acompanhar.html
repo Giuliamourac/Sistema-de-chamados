@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Acompanhe suas solicitações | Sabesp')}"></head>
+<body class="tema-portal">
+
+<header th:replace="~{fragments/layout :: cabecalho-portal}"></header>
+
+<main class="container container--portal container--com-rodape">
+    <p class="pagina__kicker pagina__kicker--portal">Solicitações feitas</p>
+    <h1 class="pagina__titulo pagina__titulo--portal">Acompanhe suas solicitações</h1>
+    <p class="pagina__subtitulo">Acompanhe o andamento das suas solicitações e veja o resultado delas!</p>
+
+    <div class="portal-grid">
+        <section class="lista-cartoes">
+            <p class="vazio" th:if="${#lists.isEmpty(chamados)}">Nenhuma solicitação em andamento.</p>
+            <th:block th:each="c : ${chamados}">
+                <article th:replace="~{fragments/layout :: cartao(${c}, false)}"></article>
+            </th:block>
+        </section>
+
+        <aside class="portal-lateral">
+            <div class="card-info">
+                <h2 class="card-info__titulo">Entenda a sua solicitação</h2>
+                <ul class="card-info__lista">
+                    <li>Aqui você encontra todas as solicitações que ainda estão em andamento.</li>
+                    <li>Se sua solicitação não estiver aqui confira seu histórico, pois a mesma pode ter sido concluída ou cancelada.</li>
+                    <li>Solicitações em andamento só ganham um prazo após termino de analise.</li>
+                    <li>A cada nova atualização você recebera um e-mail com o status e a respectiva atualização feita no processo, confira sua caixa de spam.</li>
+                </ul>
+            </div>
+            <a class="btn-portal" th:href="@{/chamados/historico}">
+                <span>Ver histórico de solicitações</span> <span aria-hidden="true">→</span>
+            </a>
+        </aside>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sabesp | Solicite por aqui')}"></head>
+<body class="tema-portal">
+
+<header th:replace="~{fragments/layout :: cabecalho-portal}"></header>
+
+<main class="home">
+    <!-- Folhas decorativas (ficam atrás da foto) -->
+    <img class="home__folha home__folha--esq-1" th:src="@{/img/folha-esq-1.png}" alt="">
+    <img class="home__folha home__folha--esq-2" th:src="@{/img/folha-esq-2.png}" alt="">
+    <img class="home__folha home__folha--esq-3" th:src="@{/img/folha-esq-3.png}" alt="">
+    <img class="home__folha home__folha--dir-1" th:src="@{/img/folha-dir-1.png}" alt="">
+    <img class="home__folha home__folha--dir-2" th:src="@{/img/folha-dir-2.png}" alt="">
+
+    <div class="home__hero">
+        <img th:src="@{/img/hero-sabesp.jpg}" alt="Reservatórios da Sabesp">
+    </div>
+
+    <div class="home__conteudo">
+        <h1 class="home__titulo">Solicite por aqui!</h1>
+        <p class="home__texto home__texto--grande">
+            Faça solicitações de reparo em poucos passos, acompanhe cada atualização e tenha mais controle
+            sobre suas demandas. Simples para solicitar, fácil para acompanhar.
+        </p>
+        <a class="btn-home" th:href="@{/chamados/novo}">Fazer solicitação</a>
+
+        <h2 class="home__titulo home__titulo--segundo">Já fez uma solicitação?</h2>
+        <p class="home__texto">Consulte as solicitações ja feitas por você!</p>
+        <a class="btn-home" th:href="@{/chamados}">Consultar solicitação</a>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nova solicitação | Sabesp')}"></head>
+<body class="tema-wizard">
+
+<header th:replace="~{fragments/layout :: cabecalho-wizard}"></header>
+
+<main class="container container--wizard">
+    <p class="pagina__kicker">Nova solicitação</p>
+    <h1 class="pagina__titulo">Conte o que está acontecendo</h1>
+    <p class="pagina__subtitulo">Preencha os dados abaixo para registrar a ocorrência.</p>
+
+    <form id="form-chamado" th:action="@{/chamados/salvar}" th:object="${form}" method="post"
+          enctype="multipart/form-data" novalidate th:attr="data-passo-inicial=${passoInicial}">
+
+        <!-- Etapas -->
+        <nav class="passos" aria-label="Etapas da solicitação">
+            <button type="button" class="passo passo--ativo" data-passo="1">
+                <span class="passo__numero">1</span><span class="passo__rotulo">1. Ocorrência</span>
+            </button>
+            <button type="button" class="passo" data-passo="2">
+                <span class="passo__numero">2</span><span class="passo__rotulo">2. Localização</span>
+            </button>
+            <button type="button" class="passo" data-passo="3">
+                <span class="passo__numero">3</span><span class="passo__rotulo">3. Contato</span>
+            </button>
+        </nav>
+
+        <div class="wizard">
+            <!-- Coluna principal -->
+            <section class="card">
+                <p class="alerta" th:if="${erro}" th:text="${erro}" role="alert"></p>
+
+                <!-- Passo 1: Ocorrência -->
+                <div class="painel painel--ativo" data-passo="1">
+                    <h2 class="card__titulo">Sobre a ocorrência</h2>
+
+                    <div class="campo">
+                        <label class="campo__rotulo" for="tipoOcorrencia">Tipo de problema *</label>
+                        <select class="entrada entrada--select" th:field="*{tipoOcorrencia}" required>
+                            <option value="" disabled selected>Selecione uma opção</option>
+                            <option th:each="t : ${tipos}" th:value="${t}" th:text="${t}"></option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label class="campo__rotulo" for="descricao">Descrição *</label>
+                        <textarea class="entrada entrada--area" th:field="*{descricao}"
+                                  placeholder="Descreva o que você observou, quando começou e outros detalhes."
+                                  required></textarea>
+                    </div>
+
+                    <div class="campo campo--fotos">
+                        <span class="campo__rotulo">Fotos (opcional)</span>
+                        <label class="upload" for="fotos">
+                            <span class="upload__acao">＋ Anexar fotos</span>
+                            <span class="upload__dica" id="upload-dica">PNG ou JPG • até 10 MB por arquivo</span>
+                        </label>
+                        <input class="upload__input" type="file" id="fotos" name="fotos" multiple
+                               accept="image/png,image/jpeg">
+                    </div>
+                </div>
+
+                <!-- Passo 2: Localização -->
+                <div class="painel" data-passo="2">
+                    <h2 class="card__titulo">Localização da ocorrência</h2>
+
+                    <div class="campo">
+                        <label class="campo__rotulo" for="cep">CEP *</label>
+                        <input class="entrada" type="text" th:field="*{cep}" placeholder="00000-000"
+                               inputmode="numeric" maxlength="9" pattern="\d{5}-?\d{3}"
+                               autocomplete="postal-code" required>
+                    </div>
+
+                    <div class="campo">
+                        <label class="campo__rotulo" for="bairro">Bairro *</label>
+                        <select class="entrada entrada--select" th:field="*{bairro}" required>
+                            <option value="" disabled selected>Selecione o bairro</option>
+                            <option th:each="b : ${bairros}" th:value="${b}" th:text="${b}"></option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label class="campo__rotulo" for="logradouro">Logradouro *</label>
+                        <input class="entrada" type="text" th:field="*{logradouro}"
+                               placeholder="Apartamento, bloco etc." maxlength="200" required>
+                    </div>
+
+                    <div class="campo">
+                        <label class="campo__rotulo" for="pontoReferencia">Ponto de referência *</label>
+                        <input class="entrada" type="text" th:field="*{pontoReferencia}"
+                               placeholder="Ex.: próximo à praça ou comércio" maxlength="200" required>
+                    </div>
+                </div>
+
+                <!-- Passo 3: Contato -->
+                <div class="painel" data-passo="3">
+                    <h2 class="card__titulo">Localização da ocorrência</h2>
+
+                    <div class="campo">
+                        <label class="campo__rotulo" for="nomeSolicitante">Nome completo *</label>
+                        <input class="entrada" type="text" th:field="*{nomeSolicitante}"
+                               placeholder="Digite seu nome completo" maxlength="150" autocomplete="name" required>
+                    </div>
+
+                    <div class="campo">
+                        <label class="campo__rotulo" for="email">E-mail *</label>
+                        <input class="entrada" type="email" th:field="*{email}"
+                               placeholder="seuemail@exemplo.com" maxlength="150" autocomplete="email" required>
+                    </div>
+
+                    <div class="campo">
+                        <label class="campo__rotulo" for="telefone">Telefone *</label>
+                        <input class="entrada" type="tel" th:field="*{telefone}" placeholder="(13) 99999-9999"
+                               inputmode="tel" maxlength="15" pattern="\(?\d{2}\)?\s?\d{4,5}-?\d{4}"
+                               autocomplete="tel" required>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Coluna lateral -->
+            <aside class="lateral">
+                <div class="card card--lateral">
+                    <h2 class="card__titulo">Antes de enviar</h2>
+                    <ul class="dicas">
+                        <li>Confira o endereço da ocorrência</li>
+                        <li>Não inclua dados pessoais de terceiros</li>
+                        <li>Se possível, adicione uma foto do local</li>
+                    </ul>
+                    <span class="pilula">Protocolo gerado ao final</span>
+                </div>
+
+                <button type="button" class="btn-passo" id="btn-avancar">
+                    <span id="btn-avancar-texto">Continuar para localização</span>
+                    <span aria-hidden="true">→</span>
+                </button>
+                <p class="obrigatorios">* Campos obrigatórios</p>
+            </aside>
+        </div>
+    </form>
+</main>
+
+<script th:src="@{/js/chamado-form.js}"></script>
+</body>
+</html>

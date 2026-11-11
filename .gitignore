@@ -22,3 +22,29 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+
+# Maven
+target/
+.mvn/timing.properties
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Environment variables and secrets
+.env
+application-local.properties
+
+# Local database files
+*.db
+*.mv.db
+
+# Uploaded files
+uploads/*
+!uploads/.gitkeep

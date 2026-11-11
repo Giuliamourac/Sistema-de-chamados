@@ -1,0 +1,135 @@
+(function () {
+    'use strict';
+
+    var form = document.getElementById('form-chamado');
+    if (!form) return;
+
+    var paineis = Array.prototype.slice.call(form.querySelectorAll('.painel'));
+    var passos = Array.prototype.slice.call(form.querySelectorAll('.passo'));
+    var botao = document.getElementById('btn-avancar');
+    var botaoTexto = document.getElementById('btn-avancar-texto');
+    var fotos = document.getElementById('fotos');
+    var dica = document.getElementById('upload-dica');
+    var dicaOriginal = dica ? dica.textContent : '';
+
+    var TEXTOS = {1: 'Continuar para localização', 2: 'Continuar para contato', 3: 'Finalizar chamado'};
+    var MAX_BYTES = 10 * 1024 * 1024;
+
+    var atual = parseInt(form.getAttribute('data-passo-inicial') || '1', 10);
+    if (isNaN(atual) || atual < 1 || atual > 3) atual = 1;
+    var maior = atual;
+    var enviando = false;
+
+    function mostrar(n) {
+        atual = n;
+        if (n > maior) maior = n;
+        paineis.forEach(function (p) {
+            p.classList.toggle('painel--ativo', parseInt(p.getAttribute('data-passo'), 10) === n);
+        });
+        passos.forEach(function (p) {
+            p.classList.toggle('passo--ativo', parseInt(p.getAttribute('data-passo'), 10) === n);
+        });
+        botaoTexto.textContent = TEXTOS[n];
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    // Valida os campos do painel informado; mostra a mensagem do navegador no primeiro inválido
+    function validarPasso(n) {
+        var painel = form.querySelector('.painel[data-passo="' + n + '"]');
+        var campos = painel.querySelectorAll('input, select, textarea');
+        for (var i = 0; i < campos.length; i++) {
+            if (campos[i].type === 'file') continue;
+            if (campos[i].tagName !== 'SELECT' && campos[i].type !== 'file') {
+                campos[i].value = campos[i].value.trim();
+            }
+            if (!campos[i].checkValidity()) {
+                campos[i].reportValidity();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function avancar() {
+        if (enviando) return;
+        if (!validarPasso(atual)) return;
+        if (atual < 3) {
+            mostrar(atual + 1);
+            return;
+        }
+        // Último passo: confere os anteriores e envia
+        for (var n = 1; n < 3; n++) {
+            if (!validarPasso(n)) {
+                mostrar(n);
+                validarPasso(n);
+                return;
+            }
+        }
+        enviando = true;
+        botao.disabled = true;
+        form.submit();
+    }
+
+    botao.addEventListener('click', avancar);
+
+    // Enter dentro de um campo também avança, em vez de enviar o formulário incompleto
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        avancar();
+    });
+
+    // Permite voltar (ou revisitar) etapas já alcançadas pelo indicador de passos
+    passos.forEach(function (p) {
+        p.addEventListener('click', function () {
+            var n = parseInt(p.getAttribute('data-passo'), 10);
+            if (n <= maior) mostrar(n);
+        });
+    });
+
+    // ---- Máscaras ----
+    var cep = document.getElementById('cep');
+    if (cep) {
+        cep.addEventListener('input', function () {
+            var d = cep.value.replace(/\D/g, '').slice(0, 8);
+            cep.value = d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d;
+        });
+    }
+
+    var telefone = document.getElementById('telefone');
+    if (telefone) {
+        telefone.addEventListener('input', function () {
+            var d = telefone.value.replace(/\D/g, '').slice(0, 11);
+            var t = d;
+            if (d.length > 6) {
+                var corte = d.length > 10 ? 7 : 6;
+                t = '(' + d.slice(0, 2) + ') ' + d.slice(2, corte) + '-' + d.slice(corte);
+            } else if (d.length > 2) {
+                t = '(' + d.slice(0, 2) + ') ' + d.slice(2);
+            } else if (d.length > 0) {
+                t = '(' + d;
+            }
+            telefone.value = t;
+        });
+    }
+
+    // ---- Fotos: PNG/JPG, até 10 MB cada ----
+    if (fotos && dica) {
+        fotos.addEventListener('change', function () {
+            var arquivos = Array.prototype.slice.call(fotos.files);
+            var invalido = arquivos.some(function (f) {
+                var tipoOk = f.type === 'image/png' || f.type === 'image/jpeg';
+                return !tipoOk || f.size > MAX_BYTES;
+            });
+            if (invalido) {
+                fotos.value = '';
+                dica.textContent = 'Use fotos PNG ou JPG de até 10 MB cada.';
+                return;
+            }
+            dica.textContent = arquivos.length === 0
+                ? dicaOriginal
+                : (arquivos.length === 1 ? '1 foto selecionada' : arquivos.length + ' fotos selecionadas');
+        });
+    }
+
+    mostrar(atual);
+})();
