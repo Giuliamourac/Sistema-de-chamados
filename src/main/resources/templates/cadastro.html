@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Cadastro | SoliCenter')}"></head>
+<body class="tema-portal">
+
+<header th:replace="~{fragments/layout :: cabecalho-portal}"></header>
+
+<main class="auth">
+    <div class="auth__intro">
+        <h1 class="auth__titulo">Crie sua conta</h1>
+        <p class="auth__subtitulo">Cadastre-se para abrir e acompanhar suas solicitações</p>
+    </div>
+
+    <div class="auth__grade">
+        <section class="auth__card">
+            <p class="alerta" th:if="${erro}" th:text="${erro}" role="alert"></p>
+
+            <form th:action="@{/cadastro}" th:object="${form}" method="post" novalidate>
+                <div class="auth__campo">
+                    <label class="auth__rotulo" for="nome">Nome completo</label>
+                    <input class="auth__entrada" type="text" id="nome" th:field="*{nome}"
+                           placeholder="Digite seu nome completo" autocomplete="name" maxlength="120" required autofocus>
+                </div>
+
+                <div class="auth__campo">
+                    <label class="auth__rotulo" for="email">E-mail</label>
+                    <input class="auth__entrada" type="email" id="email" th:field="*{email}"
+                           placeholder="Digite seu e-mail" autocomplete="email" maxlength="150" required>
+                </div>
+
+                <div class="auth__campo">
+                    <label class="auth__rotulo" for="telefone">Telefone</label>
+                    <input class="auth__entrada" type="tel" id="telefone" th:field="*{telefone}"
+                           placeholder="(00) 00000-0000" autocomplete="tel" maxlength="20" required>
+                </div>
+
+                <div class="auth__campo">
+                    <label class="auth__rotulo" for="senha">Senha</label>
+                    <input class="auth__entrada" type="password" id="senha" name="senha"
+                           placeholder="Mínimo de 8 caracteres" autocomplete="new-password"
+                           minlength="8" maxlength="72" required>
+                </div>
+
+                <div class="auth__campo">
+                    <label class="auth__rotulo" for="confirmarSenha">Confirmar senha</label>
+                    <input class="auth__entrada" type="password" id="confirmarSenha" name="confirmarSenha"
+                           placeholder="Repita sua senha" autocomplete="new-password"
+                           minlength="8" maxlength="72" required>
+                </div>
+
+                <button type="submit" class="auth__botao">Cadastrar-se</button>
+            </form>
+        </section>
+
+        <aside class="auth__lateral">
+            <h2 class="auth__lateral-titulo">Já tem conta?</h2>
+            <p class="auth__lateral-texto">Entre para acompanhar suas solicitações e abrir novos chamados</p>
+            <a class="auth__botao auth__botao--lateral" th:href="@{/login}">Entrar</a>
+        </aside>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+
+<script th:src="@{/js/auth.js}"></script>
+</body>
+</html>

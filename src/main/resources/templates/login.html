@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Login | SoliCenter')}"></head>
+<body class="tema-portal">
+
+<header th:replace="~{fragments/layout :: cabecalho-portal}"></header>
+
+<main class="auth">
+    <div class="auth__intro">
+        <h1 class="auth__titulo">Faça login</h1>
+        <p class="auth__subtitulo">Faça login para acompanhar suas solicitações</p>
+    </div>
+
+    <div class="auth__grade">
+        <section class="auth__card">
+            <p class="alerta" th:if="${erro}" th:text="${erro}" role="alert"></p>
+            <p class="alerta alerta--ok" th:if="${sucesso}" th:text="${sucesso}" role="status"></p>
+
+            <form th:action="@{/login}" th:object="${form}" method="post" novalidate>
+                <div class="auth__campo">
+                    <label class="auth__rotulo" for="email">E-mail</label>
+                    <input class="auth__entrada" type="email" id="email" th:field="*{email}"
+                           placeholder="Digite seu e-mail" autocomplete="username" maxlength="150" required autofocus>
+                </div>
+
+                <div class="auth__campo">
+                    <label class="auth__rotulo" for="senha">Senha</label>
+                    <input class="auth__entrada" type="password" id="senha" name="senha"
+                           placeholder="Digite sua senha" autocomplete="current-password" maxlength="72" required>
+                </div>
+
+                <p class="auth__esqueci">Esqueceu sua senha? <a href="#">Clique aqui</a></p>
+
+                <button type="submit" class="auth__botao">Entrar</button>
+            </form>
+        </section>
+
+        <aside class="auth__lateral">
+            <h2 class="auth__lateral-titulo">Não tem conta?</h2>
+            <p class="auth__lateral-texto">Faça seu cadastro e tenha acesso a todas as funções que oferecemos</p>
+            <a class="auth__botao auth__botao--lateral" th:href="@{/cadastro}">Cadastrar-se</a>
+        </aside>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+
+</body>
+</html>
