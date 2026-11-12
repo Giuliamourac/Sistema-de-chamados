@@ -15,28 +15,10 @@
 
 <body>
 
-<!-- ============ CABEÇALHO DO FORMULÁRIO (Abrir chamado) ============ -->
-<header class="cab cab--wizard" th:fragment="cabecalho-wizard">
-    <a class="cab__logo" th:href="@{/}" aria-label="Sabesp - página inicial">
-        <img th:src="@{/img/logo-sabesp.png}" alt="Sabesp">
-    </a>
-    <nav class="cab__nav" aria-label="Principal">
-        <a th:href="@{/}">A Sabesp</a>
-        <a th:href="@{/chamados}">Acompanhe sua solicitação</a>
-        <a th:href="@{/chamados/novo}">Solicite</a>
-        <a href="#">SAQ</a>
-    </nav>
-    <div class="cab__links">
-        <a th:href="@{/chamados}">Acompanhar solicitação</a>
-        <a href="#">Orientações</a>
-    </div>
-    <a class="btn-entrar" href="#">Entrar</a>
-</header>
-
-<!-- ============ CABEÇALHO DO PORTAL (Home, Acompanhe, Histórico) ============ -->
+<!-- ============ CABEÇALHO ÚNICO (todas as telas) ============ -->
 <header class="cab cab--portal" th:fragment="cabecalho-portal">
-    <a class="cab__logo" th:href="@{/}" aria-label="Sabesp - página inicial">
-        <img th:src="@{/img/logo-sabesp.png}" alt="Sabesp">
+    <a class="cab__logo" th:href="@{/}" aria-label="SoliCenter - página inicial">
+        <img th:src="@{/img/solicenter-logo.png}" alt="SoliCenter">
     </a>
     <nav class="cab__nav" aria-label="Principal">
         <a th:href="@{/}">A Sabesp</a>
@@ -52,12 +34,15 @@
         </svg>
         <input type="search" name="q" placeholder="Pesquise o que você deseja" aria-label="Pesquisar">
     </form>
-    <a class="btn-login" href="#">Login</a>
+    <form class="cab__sessao" th:if="${usuarioLogado != null}" th:action="@{/logout}" method="post">
+        <button type="submit" class="btn-login">Sair</button>
+    </form>
+    <a class="btn-login" th:if="${usuarioLogado == null}" th:href="@{/login}">Login</a>
 </header>
 
 <!-- ============ RODAPÉ ============ -->
 <footer class="rodape" th:fragment="rodape">
-    <img th:src="@{/img/logo-sabesp.png}" alt="Sabesp">
+    <img th:src="@{/img/solicenter-logo-rodape.png}" alt="SoliCenter">
 </footer>
 
 <!-- ============ CARTÃO DE CHAMADO (Acompanhe / Histórico) ============ -->

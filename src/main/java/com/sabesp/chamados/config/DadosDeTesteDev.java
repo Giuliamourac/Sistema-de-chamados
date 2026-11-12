@@ -7,6 +7,7 @@ import com.sabesp.chamados.model.Usuario;
 import com.sabesp.chamados.repository.ChamadoRepository;
 import com.sabesp.chamados.repository.TipoOcorrenciaRepository;
 import com.sabesp.chamados.repository.UsuarioRepository;
+import com.sabesp.chamados.security.SenhaService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -26,13 +27,16 @@ public class DadosDeTesteDev implements CommandLineRunner {
     private final TipoOcorrenciaRepository tipoRepository;
     private final UsuarioRepository usuarioRepository;
     private final ChamadoRepository chamadoRepository;
+    private final SenhaService senhaService;
 
     public DadosDeTesteDev(TipoOcorrenciaRepository tipoRepository,
                            UsuarioRepository usuarioRepository,
-                           ChamadoRepository chamadoRepository) {
+                           ChamadoRepository chamadoRepository,
+                           SenhaService senhaService) {
         this.tipoRepository = tipoRepository;
         this.usuarioRepository = usuarioRepository;
         this.chamadoRepository = chamadoRepository;
+        this.senhaService = senhaService;
     }
 
     @Override
@@ -52,6 +56,7 @@ public class DadosDeTesteDev implements CommandLineRunner {
         usuario.setNome("Maria de Teste");
         usuario.setEmail("maria.teste@exemplo.com");
         usuario.setTelefone("(13) 99999-9999");
+        usuario.setSenha(senhaService.gerarHash("senha1234")); // login de teste (somente perfil dev)
         usuario = usuarioRepository.save(usuario);
 
         TipoOcorrencia vazamento = tipoRepository.findByNomeIgnoreCaseAndAtivoTrue("Vazamento de água na rua").orElseThrow();

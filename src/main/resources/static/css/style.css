@@ -53,12 +53,6 @@ button { font-family: inherit; }
     z-index: 5;
 }
 
-.cab--wizard {
-    height: 76px;
-    padding: 0 64px 0 15px;
-    border-bottom: 1px solid var(--cor-borda);
-}
-
 .cab--portal {
     height: 69px;
     padding: 0 68px 0 17px;
@@ -77,35 +71,9 @@ button { font-family: inherit; }
     position: relative;
 }
 
-.cab--wizard .cab__nav { font-weight: 500; top: -3px; }
 .cab--portal .cab__nav { font-weight: 400; gap: 32px; margin-left: 164px; top: -2px; }
 
 .cab__nav a:hover { color: var(--cor-teal); }
-
-/* Cabeçalho do formulário: links à direita e botão Entrar */
-.cab__links {
-    display: flex;
-    gap: 60px;
-    margin-left: auto;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--cor-rotulo);
-    white-space: nowrap;
-}
-
-.btn-entrar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 96px;
-    height: 48px;
-    margin-left: 60px;
-    border-radius: 10px;
-    background: var(--cor-navy);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-}
 
 /* Cabeçalho do portal: busca e Login */
 .cab__busca {
@@ -152,12 +120,12 @@ button { font-family: inherit; }
 
 /* ---------- Rodapé ---------- */
 .rodape {
-    height: 352px;
-    padding: 135px 0 0 79px;
-    background: var(--cor-azul);
+    height: 320px;
+    padding: 120px 0 0 96px;
+    background: #0A2040;
 }
 
-.rodape img { display: block; width: 392px; height: auto; }
+.rodape img { display: block; width: 300px; height: auto; }
 
 /* ---------- Containers e títulos de página ---------- */
 .container { margin: 0 auto; padding-left: 24px; padding-right: 24px; }
@@ -712,19 +680,16 @@ button { font-family: inherit; }
     .home__folha { display: none; }
     .cab__nav { margin-left: 32px; gap: 18px; }
     .cab--portal .cab__nav { margin-left: 32px; gap: 18px; }
-    .cab__links { gap: 24px; }
     .cab__busca { width: 240px; }
     .btn-login { margin-left: 24px; }
-    .btn-entrar { margin-left: 24px; }
 }
 
 @media (max-width: 900px) {
     .cab { height: auto; min-height: 64px; flex-wrap: wrap; padding: 10px 16px; gap: 10px 20px; }
-    .cab--wizard, .cab--portal { padding: 10px 16px; }
+        .cab--portal { padding: 10px 16px; }
     .cab__nav, .cab--portal .cab__nav { order: 3; width: 100%; margin-left: 0; top: 0; flex-wrap: wrap; }
-    .cab__links { display: none; }
     .cab__busca { width: auto; flex: 1; margin-left: auto; }
-    .btn-login, .btn-entrar { margin-left: 0; }
+    .btn-login { margin-left: 0; }
 
     .wizard, .portal-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
     .passos { height: auto; padding: 16px 20px; gap: 12px; }
@@ -754,4 +719,124 @@ button { font-family: inherit; }
     .passos { grid-template-columns: minmax(0, 1fr); }
     .pagina__titulo { font-size: 26px; line-height: 32px; }
     .card { padding: 20px 20px 28px; }
+}
+
+/* =========================================================
+   Login e cadastro (SoliCenter)
+   ========================================================= */
+.cab__sessao { margin: 0; display: contents; }
+.cab--portal .btn-login { border: 0; cursor: pointer; font-family: inherit; }
+.cab--portal .btn-login:hover { background: #143f60; }
+
+.auth {
+    min-height: 420px;
+    padding: 64px 24px 72px;
+    background: var(--cor-fundo);
+}
+
+.auth__intro,
+.auth__grade { max-width: 1180px; margin: 0 auto; }
+
+.auth__titulo {
+    font-size: 32px;
+    line-height: 38px;
+    font-weight: 700;
+    color: var(--cor-azul);
+}
+
+.auth__subtitulo {
+    margin-top: 6px;
+    font-size: 15px;
+    color: var(--cor-suave);
+}
+
+.auth__grade {
+    display: grid;
+    grid-template-columns: minmax(0, 531px) minmax(0, 1fr);
+    gap: 90px;
+    align-items: start;
+    margin-top: 16px;
+}
+
+.auth__card {
+    padding: 30px 28px 36px;
+    border-radius: 12px;
+    background: var(--cor-branco);
+}
+
+.auth__campo { margin-bottom: 14px; }
+
+.auth__rotulo {
+    display: block;
+    margin: 0 0 8px 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--cor-navy);
+}
+
+.auth__entrada {
+    display: block;
+    width: 100%;
+    height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--cor-teal);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--cor-rotulo);
+    font: 400 13px 'Roboto', sans-serif;
+}
+
+.auth__entrada::placeholder { color: var(--cor-suave); opacity: 1; }
+.auth__entrada:focus { outline: 0; box-shadow: 0 0 0 2px rgba(24, 124, 131, .35); }
+
+.auth__esqueci {
+    margin: 26px 0 26px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--cor-suave);
+}
+
+.auth__esqueci a { color: var(--cor-teal); font-weight: 500; }
+.auth__esqueci a:hover { text-decoration: underline; }
+
+.auth__botao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 232px;
+    height: 32px;
+    margin: 22px auto 0;
+    border: 0;
+    border-radius: 4px;
+    background: var(--cor-teal);
+    color: #fff;
+    font: 400 13px 'Roboto', sans-serif;
+    cursor: pointer;
+}
+
+.auth__esqueci + .auth__botao { margin-top: 0; }
+.auth__botao:hover { background: #136870; }
+
+.auth__lateral { padding-top: 4px; }
+
+.auth__lateral-titulo {
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 700;
+    color: var(--cor-azul);
+}
+
+.auth__lateral-texto {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--cor-suave);
+}
+
+.auth__botao--lateral { width: 376px; max-width: 100%; margin: 34px 0 0 0; }
+
+.alerta--ok { background: #E4F4EC; color: #14683A; }
+
+@media (max-width: 860px) {
+    .auth__grade { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+    .auth__botao--lateral { margin-left: 0; }
 }
