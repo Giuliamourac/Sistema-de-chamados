@@ -18,6 +18,8 @@ public class AuthController {
 
     public static final String SESSAO_USUARIO_ID = "usuarioId";
     public static final String SESSAO_USUARIO_NOME = "usuarioNome";
+    /** Página para onde voltar depois do login (definida só pelo servidor, nunca vem do usuário). */
+    public static final String SESSAO_DESTINO = "destinoLogin";
 
     private final UsuarioService usuarioService;
 
@@ -32,6 +34,9 @@ public class AuthController {
         if (sessao.getAttribute(SESSAO_USUARIO_ID) != null) {
             return "redirect:/";
         }
+        if (sessao.getAttribute(SESSAO_DESTINO) != null && !model.containsAttribute("sucesso")) {
+            model.addAttribute("sucesso", "Faça login para continuar.");
+        }
         model.addAttribute("form", new LoginForm());
         return "login";
     }
@@ -40,8 +45,10 @@ public class AuthController {
     public String entrar(@ModelAttribute("form") LoginForm form, HttpServletRequest request, Model model) {
         try {
             Usuario usuario = usuarioService.autenticar(form.getEmail(), form.getSenha());
+            HttpSession antiga = request.getSession(false);
+            Object destino = antiga == null ? null : antiga.getAttribute(SESSAO_DESTINO);
             iniciarSessao(request, usuario);
-            return "redirect:/";
+            return "redirect:" + (destino instanceof String d && d.startsWith("/") && !d.startsWith("//") ? d : "/");
         } catch (UsuarioService.UsuarioException e) {
             form.setSenha(null); // nunca devolve a senha para a tela
             model.addAttribute("erro", e.getMessage());

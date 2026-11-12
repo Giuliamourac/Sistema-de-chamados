@@ -1,6 +1,7 @@
 package com.sabesp.chamados.repository;
 
 import com.sabesp.chamados.model.Chamado;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,16 +24,27 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Integer> {
     // Tela "Acompanhe suas solicitações": só os que ainda estão em andamento
     List<Chamado> findByStatusInOrderByDataAberturaDesc(Collection<String> status);
 
-    // Busca do cabeçalho / histórico (protocolo, bairro, tipo ou logradouro)
+    // Somente chamados do usuário logado
+    List<Chamado> findByUsuarioIdUsuarioAndStatusInOrderByDataAberturaDesc(Integer idUsuario, Collection<String> status);
+
+    List<Chamado> findByUsuarioIdUsuarioOrderByDataAberturaDesc(Integer idUsuario);
+
+    // A tela de detalhe usa tudo isto fora de transação, então carrega junto.
+    // (Num EntityGraph, o que não estiver listado vira LAZY, mesmo sendo EAGER na entidade: por isso tipo e localizacao entram.)
+    @EntityGraph(attributePaths = {"usuario", "anexos", "tipo", "localizacao"})
+    Optional<Chamado> findByProtocoloAndUsuarioIdUsuario(String protocolo, Integer idUsuario);
+
+    // Busca do histórico (protocolo, bairro, tipo ou logradouro) restrita ao usuário
     @Query("""
             select c from Chamado c
             join c.tipo t
             join c.localizacao l
-            where lower(c.protocolo) like lower(concat('%', :q, '%'))
-               or lower(l.bairro) like lower(concat('%', :q, '%'))
-               or lower(t.nome) like lower(concat('%', :q, '%'))
-               or lower(l.logradouro) like lower(concat('%', :q, '%'))
+            where c.usuario.idUsuario = :idUsuario
+              and (lower(c.protocolo) like lower(concat('%', :q, '%'))
+                or lower(l.bairro) like lower(concat('%', :q, '%'))
+                or lower(t.nome) like lower(concat('%', :q, '%'))
+                or lower(l.logradouro) like lower(concat('%', :q, '%')))
             order by c.dataAbertura desc
             """)
-    List<Chamado> buscar(@Param("q") String q);
+    List<Chamado> buscarDoUsuario(@Param("idUsuario") Integer idUsuario, @Param("q") String q);
 }

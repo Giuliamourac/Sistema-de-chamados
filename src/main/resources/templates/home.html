@@ -6,15 +6,19 @@
 <header th:replace="~{fragments/layout :: cabecalho-portal}"></header>
 
 <main class="home">
-    <!-- Folhas decorativas (ficam atrás da foto) -->
-    <img class="home__folha home__folha--esq-1" th:src="@{/img/folha-esq-1.png}" alt="">
-    <img class="home__folha home__folha--esq-2" th:src="@{/img/folha-esq-2.png}" alt="">
-    <img class="home__folha home__folha--esq-3" th:src="@{/img/folha-esq-3.png}" alt="">
-    <img class="home__folha home__folha--dir-1" th:src="@{/img/folha-dir-1.png}" alt="">
-    <img class="home__folha home__folha--dir-2" th:src="@{/img/folha-dir-2.png}" alt="">
+    <!-- Elipses decorativas (ficam atrás da foto) -->
+    <img class="home__elipses home__elipses--esq" th:src="@{/img/home-elipses-esquerda.svg}" alt="">
+    <img class="home__elipses home__elipses--dir" th:src="@{/img/home-elipses-direita.svg}" alt="">
+
+    <!-- Borda ondulada da foto (mesma curva do Figma, em proporção) -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <clipPath id="onda-hero" clipPathUnits="objectBoundingBox">
+            <path d="M0 0H1V0.94888C1 0.94888 0.890292 0.980164 0.819792 0.990798C0.55017 1.031466 0.354167 0.915133 0.129514 0.879346C-0.095139 0.843558 0 0.94888 0 0.94888V0Z"/>
+        </clipPath>
+    </svg>
 
     <div class="home__hero">
-        <img th:src="@{/img/hero-sabesp.jpg}" alt="Reservatórios da Sabesp">
+        <img th:src="@{/img/home-foto.svg}" alt="Equipe da Sabesp fazendo reparo na rede de água">
     </div>
 
     <div class="home__conteudo">

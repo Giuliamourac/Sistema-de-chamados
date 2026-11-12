@@ -95,6 +95,77 @@
         });
     }
 
+    // ---- Busca de endereço pelo CEP (ViaCEP, base dos Correios) ----
+    var cepStatus = document.getElementById('cep-status');
+    var campoBairro = document.getElementById('bairro');
+    var campoLogradouro = document.getElementById('logradouro');
+    var ultimoCepBuscado = '';
+
+    function semAcento(t) {
+        return (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+    }
+
+    function avisoCep(texto, erro) {
+        if (!cepStatus) return;
+        cepStatus.textContent = texto;
+        cepStatus.classList.toggle('campo__dica--erro', !!erro);
+    }
+
+    function buscarCep(digitos) {
+        if (digitos === ultimoCepBuscado) return;
+        ultimoCepBuscado = digitos;
+        avisoCep('Buscando endereço...', false);
+
+        var controle = window.AbortController ? new AbortController() : null;
+        var limite = setTimeout(function () { if (controle) controle.abort(); }, 8000);
+
+        fetch('https://viacep.com.br/ws/' + digitos + '/json/', controle ? { signal: controle.signal } : undefined)
+            .then(function (r) { if (!r.ok) throw new Error('http'); return r.json(); })
+            .then(function (d) {
+                if (digitos !== cep.value.replace(/\D/g, '')) return; // CEP mudou durante a busca
+                if (d.erro) {
+                    avisoCep('CEP não encontrado. Preencha o endereço manualmente.', true);
+                    return;
+                }
+                if (campoLogradouro && d.logradouro) {
+                    campoLogradouro.value = d.logradouro.slice(0, 150);
+                }
+                var achou = false;
+                if (campoBairro && d.bairro) {
+                    var alvo = semAcento(d.bairro);
+                    Array.prototype.forEach.call(campoBairro.options, function (o) {
+                        if (o.value && semAcento(o.value) === alvo) {
+                            campoBairro.value = o.value;
+                            achou = true;
+                        }
+                    });
+                }
+                var cidade = d.localidade ? ' (' + d.localidade + '/' + d.uf + ')' : '';
+                if (d.bairro && !achou) {
+                    avisoCep('Endereço preenchido' + cidade + '. O bairro "' + d.bairro + '" não está na lista, selecione o bairro.', true);
+                } else {
+                    avisoCep('Endereço preenchido' + cidade + '.', false);
+                }
+            })
+            .catch(function () {
+                ultimoCepBuscado = '';
+                avisoCep('Não foi possível consultar o CEP agora. Preencha o endereço manualmente.', true);
+            })
+            .then(function () { clearTimeout(limite); });
+    }
+
+    if (cep) {
+        cep.addEventListener('input', function () {
+            var d = cep.value.replace(/\D/g, '');
+            if (d.length === 8) {
+                buscarCep(d);
+            } else {
+                ultimoCepBuscado = '';
+                avisoCep('', false);
+            }
+        });
+    }
+
     var telefone = document.getElementById('telefone');
     if (telefone) {
         telefone.addEventListener('input', function () {

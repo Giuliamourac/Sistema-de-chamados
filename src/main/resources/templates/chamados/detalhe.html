@@ -1,57 +1,130 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Solicitação | Sabesp')}"></head>
-<body class="tema-wizard">
+<head th:replace="~{fragments/layout :: head('Detalhamento de solicitação | SoliCenter')}"></head>
+<body class="tema-portal">
 
 <header th:replace="~{fragments/layout :: cabecalho-portal}"></header>
 
-<main class="container container--wizard">
-    <p class="pagina__kicker" th:text="${sucesso} ? 'Solicitação registrada' : 'Acompanhamento'">Acompanhamento</p>
-    <h1 class="pagina__titulo"
-        th:text="${sucesso} ? 'Recebemos a sua solicitação!' : ${chamado.tipoOcorrencia}">Solicitação</h1>
-    <p class="pagina__subtitulo">
-        Protocolo <strong th:text="${chamado.protocolo}">CH-2026-000000</strong>
+<main class="container container--portal">
+    <p class="pagina__kicker pagina__kicker--portal migalhas">
+        <a th:href="@{/chamados}">Solicitações</a> &gt; <span>Detalhamento de solicitação</span>
+    </p>
+    <h1 class="pagina__titulo pagina__titulo--portal">Detalhamento de solicitação</h1>
+    <p class="pagina__subtitulo">Veja o detalhamento da sua solicitação</p>
+
+    <p class="alerta alerta--ok alerta--detalhe" th:if="${sucesso}" role="status">
+        Recebemos a sua solicitação! Guarde o protocolo <strong th:text="${chamado.protocolo}">CH-2026-000000</strong>
+        para acompanhar o andamento.
     </p>
 
-    <div class="wizard wizard--detalhe">
-        <section class="card">
-            <h2 class="card__titulo">Detalhes da solicitação</h2>
-            <dl class="detalhes">
-                <dt>Tipo de problema</dt>
-                <dd th:text="${chamado.tipoOcorrencia}"></dd>
-
-                <dt>Endereço</dt>
-                <dd th:text="${chamado.enderecoCompleto}"></dd>
-
-                <dt th:if="${chamado.pontoReferencia != null}">Ponto de referência</dt>
-                <dd th:if="${chamado.pontoReferencia != null}" th:text="${chamado.pontoReferencia}"></dd>
-
-                <dt>Descrição</dt>
-                <dd class="detalhes__texto" th:text="${chamado.descricao}"></dd>
-
-                <dt>Aberta em</dt>
-                <dd th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy HH:mm')}"></dd>
-            </dl>
-        </section>
-
-        <aside class="lateral">
-            <div class="card card--lateral">
-                <h2 class="card__titulo">Status</h2>
-                <span class="selo selo--grande" th:classappend="'selo--' + ${chamado.statusClasse}"
-                      th:text="${chamado.statusRotulo}">Em andamento</span>
-                <div class="tempo tempo--lateral">
-                    <strong>Tempo em aberto</strong>
-                    <span th:text="${chamado.tempoEmAberto}">4 dias e 7 horas</span>
+    <div class="detalhe-grid">
+        <div class="detalhe-coluna">
+            <section class="detalhe-card">
+                <div class="detalhe-card__topo">
+                    <div>
+                        <h2 class="detalhe-card__titulo" th:text="${chamado.tipoOcorrencia}">Vazamento de água na rua</h2>
+                        <p class="detalhe-card__protocolo">Protocolo <span th:text="${chamado.protocolo}">CH-2026-000000</span></p>
+                    </div>
+                    <span class="selo" th:classappend="'selo--' + ${chamado.statusClasse}"
+                          th:text="${chamado.statusRotulo}">Em andamento</span>
                 </div>
-            </div>
 
-            <a class="btn-passo" th:href="@{/chamados}">
-                <span>Ver minhas solicitações</span> <span aria-hidden="true">→</span>
-            </a>
-            <a class="link-secundario" th:href="@{/chamados/novo}">Abrir nova solicitação</a>
+                <dl class="ficha">
+                    <dt>Tipo de solicitação</dt>
+                    <dd th:text="${chamado.tipoOcorrencia}"></dd>
+
+                    <dt>Solicitante</dt>
+                    <dd>
+                        <span th:text="${chamado.usuario.nome}">Nome</span><br>
+                        <span th:text="${chamado.usuario.email}">email</span><br>
+                        <span th:text="${chamado.usuario.telefone}">telefone</span>
+                    </dd>
+
+                    <dt>Endereço</dt>
+                    <dd th:text="${chamado.enderecoCompleto}"></dd>
+
+                    <th:block th:if="${chamado.pontoReferencia != null and !chamado.pontoReferencia.isBlank()}">
+                        <dt>Ponto de referência</dt>
+                        <dd th:text="${chamado.pontoReferencia}"></dd>
+                    </th:block>
+
+                    <dt>Descrição da solicitação</dt>
+                    <dd class="ficha__texto" th:text="${chamado.descricao}"></dd>
+                </dl>
+            </section>
+
+            <section class="detalhe-card detalhe-card--fotos" th:if="${!#lists.isEmpty(chamado.anexos)}">
+                <h2 class="detalhe-card__subtitulo">Fotos anexadas</h2>
+                <div class="fotos">
+                    <th:block th:each="a, s : ${chamado.anexos}" th:if="${s.index < 3}">
+                        <a class="fotos__item"
+                           th:href="@{/chamados/acompanhar/{p}/foto/{i}(p=${chamado.protocolo},i=${s.index})}"
+                           target="_blank" rel="noopener" th:title="${a.nomeArquivo}">
+                            <img th:src="@{/chamados/acompanhar/{p}/foto/{i}(p=${chamado.protocolo},i=${s.index})}"
+                                 th:alt="${a.nomeArquivo}" loading="lazy">
+                            <span class="fotos__mais" th:if="${s.index == 2 and #lists.size(chamado.anexos) > 3}"
+                                  th:text="${#lists.size(chamado.anexos) - 2} + '+'">8+</span>
+                        </a>
+                    </th:block>
+                </div>
+            </section>
+        </div>
+
+        <aside class="detalhe-card detalhe-card--historico">
+            <h2 class="detalhe-card__titulo">Histórico de solicitação</h2>
+
+            <ol class="linha-tempo">
+                <li>
+                    <p class="linha-tempo__data">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6.5 12 12 15.5 14"/>
+                        </svg>
+                        <span th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy')}">15/09/2026</span>
+                    </p>
+                    <p class="linha-tempo__texto">
+                        Criação da solicitação pelo usuário: <span th:text="${chamado.usuario.nome}">Nome</span>
+                    </p>
+                </li>
+
+                <li th:if="${chamado.status == 'EM_ANDAMENTO'}">
+                    <p class="linha-tempo__data">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6.5 12 12 15.5 14"/>
+                        </svg>
+                        <span>Em andamento</span>
+                    </p>
+                    <p class="linha-tempo__texto">Solicitação foi aceita e se encontra em análise</p>
+                </li>
+
+                <li th:if="${chamado.dataConclusao != null and chamado.statusClasse != 'em-andamento'}">
+                    <p class="linha-tempo__data">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/><polyline points="12 6.5 12 12 15.5 14"/>
+                        </svg>
+                        <span th:text="${#temporals.format(chamado.dataConclusao, 'dd/MM/yyyy')}">18/10/2026</span>
+                    </p>
+                    <p class="linha-tempo__texto" th:if="${chamado.statusClasse == 'cancelada'}">
+                        Solicitação foi cancelada<span th:if="${chamado.solucaoAplicada != null and !chamado.solucaoAplicada.isBlank()}">;<br>
+                        Motivo: <span class="linha-tempo__motivo" th:text="${chamado.solucaoAplicada}"></span></span><br>
+                        Dias para recorrer: <span th:text="${chamado.diasParaRecorrer} + (${chamado.diasParaRecorrer == 1} ? ' dia' : ' dias')">15 dias</span>
+                    </p>
+                    <p class="linha-tempo__texto" th:if="${chamado.statusClasse == 'concluida'}">
+                        Solicitação foi concluída<span th:if="${chamado.solucaoAplicada != null and !chamado.solucaoAplicada.isBlank()}">;<br>
+                        Solução aplicada: <span class="linha-tempo__motivo" th:text="${chamado.solucaoAplicada}"></span></span>
+                    </p>
+                </li>
+            </ol>
+
+            <button type="button" class="btn-recorrer" th:if="${chamado.statusClasse == 'cancelada'}"
+                    disabled title="Recurso em breve">Recorrer</button>
         </aside>
     </div>
 </main>
+
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
 
 </body>
 </html>

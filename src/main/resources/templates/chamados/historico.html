@@ -10,47 +10,55 @@
     <h1 class="pagina__titulo pagina__titulo--portal">Histórico de solicitações feias</h1>
     <p class="pagina__subtitulo">Confira o histórico das solicitações feitas por você e seus resultados</p>
 
-    <!-- Barra com "+" : abre a busca por protocolo, bairro, tipo ou logradouro -->
-    <section class="barra-busca" th:classappend="${q != null and !q.isBlank()} ? 'barra-busca--aberta'">
-        <button type="button" class="barra-busca__botao" id="barra-busca-botao"
-                aria-expanded="false" aria-controls="barra-busca-painel" aria-label="Buscar solicitações">
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" aria-hidden="true">
-                <circle cx="13" cy="13" r="11"/>
-                <line x1="13" y1="7.5" x2="13" y2="18.5"/>
-                <line x1="7.5" y1="13" x2="18.5" y2="13"/>
+    <!-- Resumo -->
+    <section class="resumo" aria-label="Resumo das solicitações">
+        <span class="resumo__item resumo__item--ok">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><polyline points="7.5 12.5 10.5 15.5 16.5 9"/>
             </svg>
-        </button>
-        <form class="barra-busca__painel" id="barra-busca-painel" th:action="@{/chamados/historico}" method="get">
-            <input type="text" name="q" th:value="${q}"
-                   placeholder="Buscar por protocolo, bairro, tipo ou logradouro">
-            <button type="submit">Buscar</button>
-            <a th:if="${q != null and !q.isBlank()}" th:href="@{/chamados/historico}">Limpar</a>
-        </form>
+            <span><span th:text="${totalConcluidas}">0</span> solicitações concluídas</span>
+        </span>
+        <span class="resumo__item resumo__item--cancel">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/><line x1="15.5" y1="8.5" x2="8.5" y2="15.5"/>
+            </svg>
+            <span><span th:text="${totalCanceladas}">0</span> solicitações canceladas</span>
+        </span>
+        <span class="resumo__item resumo__item--total">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="7.5" x2="12" y2="16.5"/><line x1="7.5" y1="12" x2="16.5" y2="12"/>
+            </svg>
+            <span><span th:text="${totalGeral}">0</span> solicitações totais</span>
+        </span>
     </section>
 
-    <section class="lista-cartoes lista-cartoes--historico">
-        <p class="vazio" th:if="${#lists.isEmpty(chamados)}">Nenhuma solicitação encontrada.</p>
-        <th:block th:each="c : ${chamados}">
-            <article th:replace="~{fragments/layout :: cartao(${c}, true)}"></article>
-        </th:block>
-    </section>
+    <div class="portal-grid">
+        <section class="lista-cartoes lista-cartoes--historico">
+            <p class="vazio" th:if="${semLogin}">Faça <a class="vazio__link" th:href="@{/login}">login</a> para ver suas solicitações.</p>
+            <p class="vazio" th:if="${!semLogin and #lists.isEmpty(chamados)}">Nenhuma solicitação encontrada.</p>
+            <th:block th:each="c : ${chamados}">
+                <article th:replace="~{fragments/layout :: cartao(${c}, true)}"></article>
+            </th:block>
+        </section>
+
+        <aside class="portal-lateral">
+            <div class="card-info">
+                <h2 class="card-info__titulo">Entenda o resultado</h2>
+                <ul class="card-info__lista">
+                    <li>Solicitações canceladas podem ser por diversos impedimentos, confira o motivo do cancelamento e veja se há disponibilidade para recorrer na decisão.</li>
+                    <li>Solicitações concluídas nem sempre envolvem a solução do problema em si, a solução pode ser dada de outras maneiras; caso não concorde com a solução verifique o prazo para recorrer e pedir uma nova análise do pedido.</li>
+                    <li>Se a sua solicitação não se encontrar aqui talvez ela ainda esteja em análise, confira os status na tela de solicitações.</li>
+                </ul>
+            </div>
+            <a class="btn-portal" th:href="@{/chamados}">
+                <span>Ver solicitações em aberto</span> <span aria-hidden="true">→</span>
+            </a>
+        </aside>
+    </div>
 </main>
 
-<script>
-    (function () {
-        var barra = document.querySelector('.barra-busca');
-        var botao = document.getElementById('barra-busca-botao');
-        if (!barra || !botao) return;
-        function sincronizar() {
-            botao.setAttribute('aria-expanded', barra.classList.contains('barra-busca--aberta') ? 'true' : 'false');
-        }
-        botao.addEventListener('click', function () {
-            barra.classList.toggle('barra-busca--aberta');
-            sincronizar();
-        });
-        sincronizar();
-    })();
-</script>
 </body>
 </html>

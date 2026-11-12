@@ -12,7 +12,8 @@
 
     <div class="portal-grid">
         <section class="lista-cartoes">
-            <p class="vazio" th:if="${#lists.isEmpty(chamados)}">Nenhuma solicitação em andamento.</p>
+            <p class="vazio" th:if="${semLogin}">Faça <a class="vazio__link" th:href="@{/login}">login</a> para ver suas solicitações.</p>
+            <p class="vazio" th:if="${!semLogin and #lists.isEmpty(chamados)}">Nenhuma solicitação em andamento.</p>
             <th:block th:each="c : ${chamados}">
                 <article th:replace="~{fragments/layout :: cartao(${c}, false)}"></article>
             </th:block>

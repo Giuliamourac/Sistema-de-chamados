@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -75,6 +76,7 @@ public class Chamado {
     private LocalDateTime dataConclusao;
 
     @OneToMany(mappedBy = "chamado", cascade = CascadeType.ALL)
+    @OrderBy("idAnexo ASC")
     private List<Anexo> anexos = new ArrayList<>();
 
     public Chamado() {
@@ -150,6 +152,13 @@ public class Chamado {
             partes.add(localizacao.getCep().trim());
         }
         return String.join(", ", partes);
+    }
+
+    // Prazo de 15 dias para recorrer de um cancelamento (contado a partir da data de conclusão)
+    public long getDiasParaRecorrer() {
+        if (!isCancelado() || dataConclusao == null) return 0;
+        long passados = Duration.between(dataConclusao, LocalDateTime.now()).toDays();
+        return Math.max(0, 15 - passados);
     }
 
     // Ex.: "4 dias e 7 horas"

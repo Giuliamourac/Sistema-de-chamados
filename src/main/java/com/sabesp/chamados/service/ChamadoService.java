@@ -11,6 +11,7 @@ import com.sabesp.chamados.repository.TipoOcorrenciaRepository;
 import com.sabesp.chamados.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -57,14 +58,15 @@ public class ChamadoService {
                 .toList();
     }
 
-    // Cria usuário (se o e-mail for novo), localização, chamado e anexos.
+    // Cria localização, chamado e anexos para o usuário logado.
     // Se dois chamados gerarem o mesmo protocolo ao mesmo tempo, o banco recusa
     // (UNIQUE) e tentamos de novo com outro número.
-    public Chamado abrirChamado(ChamadoForm form, List<MultipartFile> fotos) {
+    public Chamado abrirChamado(ChamadoForm form, List<MultipartFile> fotos, Integer idUsuario) {
         TipoOcorrencia tipo = tipoOcorrenciaRepository
                 .findByNomeIgnoreCaseAndAtivoTrue(form.getTipoOcorrencia().trim())
                 .orElseThrow(() -> new IllegalArgumentException("Tipo de ocorrência inválido."));
-        Usuario usuario = obterOuCriarUsuario(form);
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
         List<MultipartFile> fotosValidas = fotosEnviadas(fotos);
 
         Chamado salvo;
@@ -101,37 +103,43 @@ public class ChamadoService {
         return null;
     }
 
-    public List<Chamado> listarEmAndamento() {
-        return chamadoRepository.findByStatusInOrderByDataAberturaDesc(STATUS_EM_ANDAMENTO);
+    // Todas as consultas são filtradas pelo usuário logado: ninguém vê chamado de outra pessoa
+    public List<Chamado> listarEmAndamento(Integer idUsuario) {
+        return chamadoRepository.findByUsuarioIdUsuarioAndStatusInOrderByDataAberturaDesc(idUsuario, STATUS_EM_ANDAMENTO);
     }
 
-    public List<Chamado> listarTodos() {
-        return chamadoRepository.findAllByOrderByDataAberturaDesc();
+    public List<Chamado> listarTodos(Integer idUsuario) {
+        return chamadoRepository.findByUsuarioIdUsuarioOrderByDataAberturaDesc(idUsuario);
     }
 
-    public List<Chamado> buscar(String termo) {
-        return chamadoRepository.buscar(termo);
+    public List<Chamado> buscar(Integer idUsuario, String termo) {
+        return chamadoRepository.buscarDoUsuario(idUsuario, termo);
     }
 
-    public Optional<Chamado> buscarPorProtocolo(String protocolo) {
-        return chamadoRepository.findByProtocolo(protocolo);
+    /** Arquivo de foto de um chamado, pronto para ser enviado ao navegador. */
+    public record ArquivoAnexo(Path caminho, MediaType tipo) {
+    }
+
+    // Localiza a foto de índice N do chamado dentro da pasta de uploads (nunca fora dela)
+    public Optional<ArquivoAnexo> arquivoDoAnexo(Chamado chamado, int indice) {
+        List<Anexo> anexos = chamado.getAnexos();
+        if (indice < 0 || indice >= anexos.size()) {
+            return Optional.empty();
+        }
+        Path arquivo = pastaUploads.resolve(anexos.get(indice).getCaminhoArquivo()).normalize();
+        if (!arquivo.startsWith(pastaUploads) || !Files.isRegularFile(arquivo)) {
+            return Optional.empty();
+        }
+        String nome = arquivo.getFileName().toString().toLowerCase();
+        MediaType tipo = nome.endsWith(".png") ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
+        return Optional.of(new ArquivoAnexo(arquivo, tipo));
+    }
+
+    public Optional<Chamado> buscarPorProtocolo(String protocolo, Integer idUsuario) {
+        return chamadoRepository.findByProtocoloAndUsuarioIdUsuario(protocolo, idUsuario);
     }
 
     // ---------------------------------------------------------------
-
-    // Reaproveita o usuário pelo e-mail; se não existir, cria como CLIENTE (sem senha, pois ainda não há login)
-    private Usuario obterOuCriarUsuario(ChamadoForm form) {
-        String email = form.getEmail().trim().toLowerCase();
-        return usuarioRepository.findByEmailIgnoreCase(email).orElseGet(() -> {
-            Usuario novo = new Usuario();
-            novo.setNome(form.getNomeSolicitante().trim());
-            novo.setEmail(email);
-            novo.setTelefone(form.getTelefone().trim());
-            novo.setTipo("CLIENTE");
-            novo.setAtivo(true);
-            return usuarioRepository.save(novo);
-        });
-    }
 
     private Chamado montarChamado(ChamadoForm form, TipoOcorrencia tipo, Usuario usuario,
                                   List<MultipartFile> fotos) {
