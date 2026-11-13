@@ -1,11 +1,7 @@
 package com.sabesp.chamados.service;
 
 import com.sabesp.chamados.dto.ChamadoForm;
-import com.sabesp.chamados.model.Anexo;
-import com.sabesp.chamados.model.Chamado;
-import com.sabesp.chamados.model.Localizacao;
-import com.sabesp.chamados.model.TipoOcorrencia;
-import com.sabesp.chamados.model.Usuario;
+import com.sabesp.chamados.model.*;
 import com.sabesp.chamados.repository.ChamadoRepository;
 import com.sabesp.chamados.repository.TipoOcorrenciaRepository;
 import com.sabesp.chamados.repository.UsuarioRepository;
@@ -21,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
@@ -160,6 +157,13 @@ public class ChamadoService {
         chamado.setDescricao(form.getDescricao().trim());
         chamado.setStatus("ABERTO");
         chamado.setPrioridade("MEDIA");
+        chamado.setDataAbertura(LocalDateTime.now());
+
+        // Primeiro registro da linha do tempo: gravado junto com o chamado (cascade)
+        Movimentacao abertura = new Movimentacao(chamado, usuario, Movimentacao.ABERTURA);
+        abertura.setStatusNovo("ABERTO");
+        abertura.setDataMovimentacao(chamado.getDataAbertura());
+        chamado.getMovimentacoes().add(abertura);
 
         int numero = 1;
         for (MultipartFile foto : fotos) {

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gerenciar solicitações | SoliCenter')}"></head>
+<body class="tema-portal">
+
+<header th:replace="~{fragments/layout :: cabecalho-portal}"></header>
+
+<main class="container container--portal container--admin">
+    <p class="pagina__kicker pagina__kicker--portal">Painel administrativo</p>
+    <h1 class="pagina__titulo pagina__titulo--portal">Solicitações</h1>
+    <p class="pagina__subtitulo">Acompanhe todas as solicitações abertas pelos clientes e atualize o andamento delas</p>
+
+    <p class="alerta alerta--detalhe" th:if="${erro}" th:text="${erro}" role="alert"></p>
+
+    <!-- Resumo por status: cada item filtra a lista -->
+    <nav class="resumo resumo--admin" aria-label="Solicitações por status">
+        <a class="resumo-status" th:each="s : ${opcoesStatus}"
+           th:href="@{/admin/chamados(status=${s.codigo})}"
+           th:classappend="${filtroStatus.size() == 1 and filtroStatus.contains(s.codigo)} ? 'resumo-status--ativo' : ''">
+            <span class="selo selo--mini" th:classappend="'selo--' + ${s.classe}" th:text="${s.rotulo}">Pendente</span>
+            <strong th:text="${contagem.get(s)}">0</strong>
+        </a>
+        <a class="resumo-status resumo-status--total" th:href="@{/admin/chamados}"
+           th:classappend="${!temFiltro} ? 'resumo-status--ativo' : ''">
+            <span>Todas</span>
+            <strong th:text="${total}">0</strong>
+        </a>
+    </nav>
+
+    <div class="admin-grid">
+        <!-- Filtros -->
+        <form class="filtro" id="form-filtro" th:action="@{/admin/chamados}" method="get" aria-label="Filtrar solicitações">
+            <h2 class="filtro__titulo">Filtro</h2>
+
+            <label class="filtro__busca">
+                <span class="filtro__grupo">Buscar</span>
+                <input type="search" name="q" th:value="${q}" maxlength="100"
+                       placeholder="Protocolo, cliente, endereço...">
+            </label>
+
+            <fieldset class="filtro__bloco">
+                <legend class="filtro__grupo">Status</legend>
+                <label class="filtro__opcao" th:each="s : ${opcoesStatus}">
+                    <input type="checkbox" name="status" th:value="${s.codigo}"
+                           th:checked="${filtroStatus.contains(s.codigo)}">
+                    <span th:text="${s.rotulo}">Pendente</span>
+                </label>
+            </fieldset>
+
+            <fieldset class="filtro__bloco">
+                <legend class="filtro__grupo">Conteúdo</legend>
+                <label class="filtro__opcao">
+                    <input type="checkbox" name="conteudo" value="com" th:checked="${filtroConteudo.contains('com')}">
+                    <span>Com imagens</span>
+                </label>
+                <label class="filtro__opcao">
+                    <input type="checkbox" name="conteudo" value="sem" th:checked="${filtroConteudo.contains('sem')}">
+                    <span>Sem imagens</span>
+                </label>
+            </fieldset>
+
+            <fieldset class="filtro__bloco">
+                <legend class="filtro__grupo">Tempo</legend>
+                <label class="filtro__opcao">
+                    <input type="checkbox" name="tempo" value="ate30" th:checked="${filtroTempo.contains('ate30')}">
+                    <span>Menos de 30 dias</span>
+                </label>
+                <label class="filtro__opcao">
+                    <input type="checkbox" name="tempo" value="30a90" th:checked="${filtroTempo.contains('30a90')}">
+                    <span>Entre 30 e 90 dias</span>
+                </label>
+                <label class="filtro__opcao">
+                    <input type="checkbox" name="tempo" value="mais90" th:checked="${filtroTempo.contains('mais90')}">
+                    <span>Mais de 90 dias</span>
+                </label>
+            </fieldset>
+
+            <button type="submit" class="filtro__botao">Filtrar</button>
+            <a class="filtro__limpar" th:if="${temFiltro}" th:href="@{/admin/chamados}">Limpar filtros</a>
+        </form>
+
+        <!-- Cartões -->
+        <section class="admin-cartoes" aria-label="Lista de solicitações" aria-live="polite">
+            <p class="admin-cartoes__resultado" th:if="${temFiltro}">
+                <span th:text="${#lists.size(chamados)}">0</span> de <span th:text="${total}">0</span> solicitações
+                <a th:href="@{/admin/chamados}">Limpar filtros</a>
+            </p>
+            <p class="vazio admin-cartoes__vazio" th:if="${#lists.isEmpty(chamados)}">
+                Nenhuma solicitação encontrada<span th:if="${temFiltro}"> com esses filtros</span>.
+            </p>
+
+            <article class="admin-cartao" th:each="c : ${chamados}">
+                <h2 class="admin-cartao__titulo" th:text="${c.tipoOcorrencia}">Vazamento de água na rua</h2>
+                <p class="admin-cartao__protocolo" th:text="${c.protocolo}">CH-2026-000000</p>
+                <p class="admin-cartao__endereco" th:text="${c.enderecoCompleto}">Rua Afonso Pena, 584</p>
+                <p class="admin-cartao__cliente">Cliente: <span th:text="${c.usuario.nome}">Nome</span></p>
+                <p class="admin-cartao__descricao" th:text="${c.descricao}">Descrição</p>
+
+                <p class="admin-cartao__anexos">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/>
+                    </svg>
+                    <span th:if="${#lists.isEmpty(c.anexos)}">Sem imagens</span>
+                    <span th:unless="${#lists.isEmpty(c.anexos)}"
+                          th:text="${#lists.size(c.anexos)} + (${#lists.size(c.anexos) == 1} ? ' imagem anexada' : ' imagens anexadas')">Imagens anexadas</span>
+                </p>
+
+                <div class="admin-cartao__selos">
+                    <span class="pilula-tempo" th:text="'Solicitado ' + ${c.abertoHa}">Solicitado há 20 dias</span>
+                    <span class="selo" th:classappend="'selo--' + ${c.statusClasse}" th:text="${c.statusRotulo}">Pendente</span>
+                </div>
+
+                <a class="btn-cartao admin-cartao__botao" th:href="@{/admin/chamados/{p}(p=${c.protocolo})}">
+                    <span>Conferir solicitação</span> <span aria-hidden="true">→</span>
+                </a>
+            </article>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+
+<script th:src="@{/js/admin-filtro.js}" defer></script>
+
+</body>
+</html>

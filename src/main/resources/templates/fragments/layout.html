@@ -25,6 +25,7 @@
         <a th:href="@{/chamados}">Acompanhe sua solicitação</a>
         <a th:href="@{/chamados/novo}">Solicite</a>
         <a href="#">SAQ</a>
+        <a class="cab__nav-admin" th:if="${usuarioAdmin}" th:href="@{/admin/chamados}">Painel admin</a>
     </nav>
     <form class="cab__busca" th:action="@{/chamados/historico}" method="get" role="search">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
@@ -64,6 +65,54 @@
         </div>
     </div>
 </article>
+
+<!-- ============ LINHA DO TEMPO (cliente e administrador) ============ -->
+<ol class="linha-tempo linha-tempo--completa" th:fragment="linha-tempo(movs)">
+    <li th:if="${#lists.isEmpty(movs)}" class="linha-tempo__vazio">Nenhuma movimentação registrada ainda.</li>
+    <li th:each="m : ${movs}" class="linha-tempo__item"
+        th:classappend="${m.classeItem}">
+        <p class="linha-tempo__data">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6.5 12 12 15.5 14"/>
+            </svg>
+            <time th:datetime="${#temporals.format(m.dataMovimentacao, 'yyyy-MM-dd''T''HH:mm')}"
+                  th:text="${#temporals.format(m.dataMovimentacao, 'dd/MM/yyyy ''às'' HH:mm')}">02/09/2026 às 10:00</time>
+        </p>
+        <div class="linha-tempo__corpo">
+            <p class="linha-tempo__titulo">
+                <span th:text="${m.titulo}">Movimentação</span>
+                <span class="selo selo--mini" th:if="${m.trocaStatus}"
+                      th:classappend="'selo--' + ${m.statusNovoClasse}" th:text="${m.statusNovoRotulo}">Em andamento</span>
+            </p>
+            <p class="linha-tempo__autor">
+                por <span th:text="${m.usuario.nome}">Nome</span>
+                <span th:if="${!#strings.isEmpty(m.perfilAutor)}" th:text="'(' + ${m.perfilAutor} + ')'">(Administrador)</span>
+            </p>
+
+            <p class="linha-tempo__texto" th:if="${m.abertura}">
+                Criação da solicitação pelo usuário: <span th:text="${m.usuario.nome}">Nome</span>
+            </p>
+            <p class="linha-tempo__texto" th:if="${m.trocaStatus and m.statusAnterior != null}">
+                De <strong th:text="${m.statusAnteriorRotulo}">Pendente</strong>
+                para <strong th:text="${m.statusNovoRotulo}">Em andamento</strong>
+            </p>
+            <p class="linha-tempo__texto linha-tempo__motivo"
+               th:if="${(m.trocaStatus or m.atualizacao) and m.descricao != null}" th:text="${m.descricao}">Texto</p>
+
+            <dl class="devolutiva devolutiva--compacta" th:if="${m.devolutiva}">
+                <dt>Problema identificado</dt>
+                <dd th:text="${m.problemaIdentificado}"></dd>
+                <dt>Solução aplicada</dt>
+                <dd th:text="${m.solucaoAplicada}"></dd>
+                <th:block th:if="${m.observacoes != null}">
+                    <dt>Observações adicionais</dt>
+                    <dd th:text="${m.observacoes}"></dd>
+                </th:block>
+            </dl>
+        </div>
+    </li>
+</ol>
 
 </body>
 </html>

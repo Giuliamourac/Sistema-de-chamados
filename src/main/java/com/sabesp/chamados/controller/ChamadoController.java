@@ -4,6 +4,7 @@ import com.sabesp.chamados.dto.ChamadoForm;
 import com.sabesp.chamados.model.Chamado;
 import com.sabesp.chamados.model.Usuario;
 import com.sabesp.chamados.repository.UsuarioRepository;
+import com.sabesp.chamados.service.AtendimentoService;
 import com.sabesp.chamados.service.ChamadoService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.core.io.FileSystemResource;
@@ -12,13 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -47,10 +42,13 @@ public class ChamadoController {
 
     private final ChamadoService chamadoService;
     private final UsuarioRepository usuarioRepository;
+    private final AtendimentoService atendimentoService;
 
-    public ChamadoController(ChamadoService chamadoService, UsuarioRepository usuarioRepository) {
+    public ChamadoController(ChamadoService chamadoService, UsuarioRepository usuarioRepository,
+                             AtendimentoService atendimentoService) {
         this.chamadoService = chamadoService;
         this.usuarioRepository = usuarioRepository;
+        this.atendimentoService = atendimentoService;
     }
 
     // Id do usuário logado ou null
@@ -148,7 +146,7 @@ public class ChamadoController {
         }
         return chamadoService.buscarPorProtocolo(protocolo, idUsuario)
                 .map(chamado -> {
-                    model.addAttribute("chamado", chamado);
+                    telaDetalhe(model, chamado);
                     model.addAttribute("sucesso", true);
                     return "chamados/detalhe";
                 })
@@ -165,11 +163,18 @@ public class ChamadoController {
         // Só encontra se o chamado for do próprio usuário; senão volta para a lista
         return chamadoService.buscarPorProtocolo(protocolo, idUsuario)
                 .map(chamado -> {
-                    model.addAttribute("chamado", chamado);
+                    telaDetalhe(model, chamado);
                     model.addAttribute("sucesso", false);
                     return "chamados/detalhe";
                 })
                 .orElse("redirect:/chamados");
+    }
+
+    // Linha do tempo e devolutiva (somente leitura para o cliente)
+    private void telaDetalhe(Model model, Chamado chamado) {
+        model.addAttribute("chamado", chamado);
+        model.addAttribute("movimentacoes", atendimentoService.linhaDoTempo(chamado));
+        model.addAttribute("devolutiva", atendimentoService.ultimaDevolutiva(chamado).orElse(null));
     }
 
     // Preenche o passo "Contato" com os dados da conta logada

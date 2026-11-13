@@ -34,6 +34,14 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Integer> {
     @EntityGraph(attributePaths = {"usuario", "anexos", "tipo", "localizacao"})
     Optional<Chamado> findByProtocoloAndUsuarioIdUsuario(String protocolo, Integer idUsuario);
 
+    // ---- Painel do administrador (todos os chamados, de qualquer cliente) ----
+
+    @EntityGraph(attributePaths = {"usuario", "anexos", "tipo", "localizacao"})
+    List<Chamado> findAllDetalhadoByOrderByDataAberturaDesc();
+
+    @EntityGraph(attributePaths = {"usuario", "anexos", "tipo", "localizacao"})
+    Optional<Chamado> findDetalhadoByProtocolo(String protocolo);
+
     // Busca do histórico (protocolo, bairro, tipo ou logradouro) restrita ao usuário
     @Query("""
             select c from Chamado c

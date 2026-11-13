@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-/** Disponibiliza o nome do usuário logado para todas as telas (cabeçalho mostra Login ou Sair). */
+/** Disponibiliza o nome (e se é administrador) do usuário logado para todas as telas do cabeçalho. */
 @ControllerAdvice
 public class SessaoAdvice {
 
@@ -17,5 +17,12 @@ public class SessaoAdvice {
         }
         Object nome = sessao.getAttribute(AuthController.SESSAO_USUARIO_NOME);
         return nome == null ? null : nome.toString();
+    }
+
+    /** Só decide se o link "Painel" aparece no cabeçalho; o acesso real é validado no AdminInterceptor. */
+    @ModelAttribute("usuarioAdmin")
+    public boolean usuarioAdmin(HttpServletRequest request) {
+        HttpSession sessao = request.getSession(false);
+        return sessao != null && "ADMIN".equals(sessao.getAttribute(AuthController.SESSAO_USUARIO_TIPO));
     }
 }
