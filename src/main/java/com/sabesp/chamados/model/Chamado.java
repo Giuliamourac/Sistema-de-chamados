@@ -1,20 +1,6 @@
 package com.sabesp.chamados.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -63,7 +49,7 @@ public class Chamado {
     @Column(name = "cd_prioridade", nullable = false, length = 20)
     private String prioridade = "MEDIA";
 
-    // ABERTO, EM_ANDAMENTO, CONCLUIDO ou CANCELADO
+    // ABERTO (pendente), EM_ANDAMENTO, CONCLUIDO, FECHADO ou CANCELADO (ver StatusChamado)
     @Column(name = "cd_status", nullable = false, length = 30)
     private String status = "ABERTO";
 
@@ -71,13 +57,19 @@ public class Chamado {
     @Column(name = "ds_solucao_aplicada")
     private String solucaoAplicada;
 
-    // Preenchida quando o chamado é concluído ou cancelado
+    // Preenchida quando o chamado é concluído, fechado ou cancelado
     @Column(name = "dt_conclusao")
     private LocalDateTime dataConclusao;
 
     @OneToMany(mappedBy = "chamado", cascade = CascadeType.ALL)
     @OrderBy("idAnexo ASC")
     private List<Anexo> anexos = new ArrayList<>();
+
+    // Linha do tempo. Usada só para gravar a abertura junto com o chamado;
+    // as telas leem a linha do tempo pelo MovimentacaoRepository.
+    @OneToMany(mappedBy = "chamado", cascade = CascadeType.PERSIST)
+    @OrderBy("dataMovimentacao ASC, idMovimentacao ASC")
+    private List<Movimentacao> movimentacoes = new ArrayList<>();
 
     public Chamado() {
     }
@@ -97,19 +89,24 @@ public class Chamado {
 
     @PreUpdate
     protected void aoAtualizar() {
-        if (dataConclusao == null && (isConcluido() || isCancelado())) {
+        if (dataConclusao == null && getStatusEnum().isFinalizado()) {
             dataConclusao = LocalDateTime.now();
         }
     }
 
     // ---- Apoio para as telas (não são colunas do banco) ----
 
-    private boolean isConcluido() {
-        return status != null && status.toUpperCase().startsWith("CONCLU");
+    // Status desconhecido é tratado como "Em andamento" (mesmo comportamento de antes)
+    public StatusChamado getStatusEnum() {
+        return StatusChamado.de(status).orElse(StatusChamado.EM_ANDAMENTO);
     }
 
     private boolean isCancelado() {
-        return status != null && status.toUpperCase().startsWith("CANCEL");
+        return getStatusEnum() == StatusChamado.CANCELADO;
+    }
+
+    public boolean isFinalizado() {
+        return getStatusEnum().isFinalizado();
     }
 
     public String getTipoOcorrencia() {
@@ -125,15 +122,24 @@ public class Chamado {
     }
 
     public String getStatusRotulo() {
-        if (isConcluido()) return "Concluída";
-        if (isCancelado()) return "Cancelada";
-        return "Em andamento";
+        return getStatusEnum().getRotulo();
     }
 
     public String getStatusClasse() {
-        if (isConcluido()) return "concluida";
-        if (isCancelado()) return "cancelada";
-        return "em-andamento";
+        return getStatusEnum().getClasse();
+    }
+
+    // Ex.: "há 20 dias", "hoje" (cartões do painel do administrador)
+    public String getAbertoHa() {
+        if (dataAbertura == null) return "-";
+        long dias = Duration.between(dataAbertura, LocalDateTime.now()).toDays();
+        if (dias <= 0) return "hoje";
+        return "há " + dias + (dias == 1 ? " dia" : " dias");
+    }
+
+    public long getDiasDesdeAbertura() {
+        if (dataAbertura == null) return 0;
+        return Math.max(0, Duration.between(dataAbertura, LocalDateTime.now()).toDays());
     }
 
     // Ex.: "Rua Afonso Pena, 584, Gonzaga - SP, 11060-000"
@@ -218,4 +224,7 @@ public class Chamado {
 
     public List<Anexo> getAnexos() { return anexos; }
     public void setAnexos(List<Anexo> anexos) { this.anexos = anexos; }
+
+    public List<Movimentacao> getMovimentacoes() { return movimentacoes; }
+    public void setMovimentacoes(List<Movimentacao> movimentacoes) { this.movimentacoes = movimentacoes; }
 }

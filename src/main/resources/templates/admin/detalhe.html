@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gerenciar solicitação | SoliCenter')}"></head>
+<body class="tema-portal">
+
+<header th:replace="~{fragments/layout :: cabecalho-portal}"></header>
+
+<main class="container container--portal">
+    <p class="pagina__kicker pagina__kicker--portal migalhas">
+        <a th:href="@{/admin/chamados}">Solicitações</a> &gt; <span>Atualização de solicitação</span>
+    </p>
+    <h1 class="pagina__titulo pagina__titulo--portal">Atualização de solicitação</h1>
+    <p class="pagina__subtitulo">Veja o histórico da solicitação e atualize o andamento do atendimento</p>
+
+    <p class="alerta alerta--ok alerta--detalhe" th:if="${sucesso}" th:text="${sucesso}" role="status"></p>
+    <p class="alerta alerta--detalhe" th:if="${erro}" th:text="${erro}" role="alert"></p>
+
+    <div class="detalhe-grid">
+        <!-- 1. Informações gerais + 2. Fotos e anexos -->
+        <div class="detalhe-coluna">
+            <section class="detalhe-card">
+                <div class="detalhe-card__topo">
+                    <div>
+                        <h2 class="detalhe-card__titulo" th:text="${chamado.tipoOcorrencia}">Vazamento de água na rua</h2>
+                        <p class="detalhe-card__protocolo">Protocolo <span th:text="${chamado.protocolo}">CH-2026-000000</span></p>
+                    </div>
+                    <span class="selo" th:classappend="'selo--' + ${chamado.statusClasse}"
+                          th:text="${chamado.statusRotulo}">Pendente</span>
+                </div>
+
+                <dl class="ficha">
+                    <dt>Data de solicitação</dt>
+                    <dd th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy ''às'' HH:mm')}">17/08/2026</dd>
+
+                    <dt>Tipo de solicitação</dt>
+                    <dd th:text="${chamado.tipoOcorrencia}"></dd>
+
+                    <dt>Solicitante</dt>
+                    <dd>
+                        <span th:text="${chamado.usuario.nome}">Nome</span><br>
+                        <span th:text="${chamado.usuario.email}">email</span><br>
+                        <span th:text="${chamado.usuario.telefone}">telefone</span>
+                    </dd>
+
+                    <dt>Endereço</dt>
+                    <dd th:text="${chamado.enderecoCompleto}"></dd>
+
+                    <th:block th:if="${chamado.pontoReferencia != null and !chamado.pontoReferencia.isBlank()}">
+                        <dt>Ponto de referência</dt>
+                        <dd th:text="${chamado.pontoReferencia}"></dd>
+                    </th:block>
+
+                    <dt>Tempo em aberto</dt>
+                    <dd th:text="${chamado.tempoEmAberto}">4 dias e 7 horas</dd>
+
+                    <dt>Descrição da solicitação</dt>
+                    <dd class="ficha__texto" th:text="${chamado.descricao}"></dd>
+                </dl>
+            </section>
+
+            <section class="detalhe-card detalhe-card--fotos">
+                <h2 class="detalhe-card__subtitulo">
+                    Fotos anexadas
+                    <span class="detalhe-card__contador" th:text="'(' + ${#lists.size(chamado.anexos)} + ')'">(0)</span>
+                </h2>
+                <p class="detalhe-card__protocolo" th:if="${#lists.isEmpty(chamado.anexos)}">O cliente não anexou imagens.</p>
+                <div class="fotos" th:unless="${#lists.isEmpty(chamado.anexos)}">
+                    <a class="fotos__item" th:each="a, s : ${chamado.anexos}"
+                       th:href="@{/admin/chamados/{p}/foto/{i}(p=${chamado.protocolo},i=${s.index})}"
+                       target="_blank" rel="noopener" th:title="${a.nomeArquivo}">
+                        <img th:src="@{/admin/chamados/{p}/foto/{i}(p=${chamado.protocolo},i=${s.index})}"
+                             th:alt="${a.nomeArquivo}" loading="lazy">
+                    </a>
+                </div>
+            </section>
+        </div>
+
+        <div class="detalhe-coluna">
+            <!-- 3. Status atual -->
+            <section class="detalhe-card" id="status">
+                <h2 class="detalhe-card__titulo">Status</h2>
+                <div class="status-atual">
+                    <span class="selo" th:classappend="'selo--' + ${chamado.statusClasse}"
+                          th:text="${chamado.statusRotulo}">Pendente</span>
+                    <span class="status-atual__data" th:if="${chamado.dataConclusao != null and chamado.finalizado}"
+                          th:text="'desde ' + ${#temporals.format(chamado.dataConclusao, 'dd/MM/yyyy')}">desde 18/10/2026</span>
+                </div>
+
+                <form class="admin-form" th:action="@{/admin/chamados/{p}/status(p=${chamado.protocolo})}" method="post">
+                    <input type="hidden" name="_csrf" th:value="${csrfToken}">
+                    <fieldset class="status-opcoes">
+                        <legend class="admin-form__rotulo">Alterar status</legend>
+                        <label class="status-opcao" th:each="s : ${opcoesStatus}">
+                            <input type="radio" name="status" th:value="${s.codigo}"
+                                   th:checked="${s.codigo == chamado.status}" required>
+                            <span class="selo" th:classappend="'selo--' + ${s.classe}" th:text="${s.rotulo}">Pendente</span>
+                        </label>
+                    </fieldset>
+                    <label class="admin-form__rotulo" for="comentario-status">Comentário (opcional)</label>
+                    <textarea id="comentario-status" class="admin-form__texto admin-form__texto--curto" name="comentario"
+                              maxlength="4000" placeholder="Explique o motivo da alteração"
+                              th:text="${secaoErro == 'status'} ? ${rascunhoComentario} : ''"></textarea>
+                    <button type="submit" class="admin-form__botao">Salvar status</button>
+                </form>
+            </section>
+
+            <!-- 4. Linha do tempo -->
+            <section class="detalhe-card detalhe-card--historico">
+                <h2 class="detalhe-card__titulo">Histórico da solicitação</h2>
+                <ol th:replace="~{fragments/layout :: linha-tempo(${movimentacoes})}"></ol>
+            </section>
+
+            <!-- 5. Atualização do andamento -->
+            <section class="detalhe-card" id="atualizacao">
+                <h2 class="detalhe-card__titulo">Atualização</h2>
+                <p class="detalhe-card__protocolo">Registre o andamento atual do atendimento. O cliente verá esta atualização no histórico.</p>
+                <form class="admin-form" th:action="@{/admin/chamados/{p}/atualizacao(p=${chamado.protocolo})}" method="post">
+                    <input type="hidden" name="_csrf" th:value="${csrfToken}">
+                    <label class="sr-only" for="descricao-atualizacao">Nova atualização</label>
+                    <textarea id="descricao-atualizacao" class="admin-form__texto" name="descricao" required
+                              maxlength="4000" placeholder="Digite aqui a nova atualização"
+                              th:text="${secaoErro == 'atualizacao'} ? ${rascunhoAtualizacao} : ''"></textarea>
+                    <button type="submit" class="admin-form__botao">Registrar atualização</button>
+                </form>
+            </section>
+
+            <!-- 5. Devolutiva ao cliente -->
+            <section class="detalhe-card" id="devolutiva">
+                <h2 class="detalhe-card__titulo">Devolutiva ao cliente</h2>
+                <p class="detalhe-card__protocolo">Explique ao cliente o que foi encontrado e como o problema foi resolvido.</p>
+                <form class="admin-form" th:action="@{/admin/chamados/{p}/devolutiva(p=${chamado.protocolo})}" method="post">
+                    <input type="hidden" name="_csrf" th:value="${csrfToken}">
+
+                    <label class="admin-form__rotulo" for="problema">Problema identificado *</label>
+                    <textarea id="problema" class="admin-form__texto admin-form__texto--curto" name="problema" required
+                              maxlength="4000" placeholder="O que foi encontrado durante a análise"
+                              th:text="${secaoErro == 'devolutiva'} ? ${rascunhoProblema} : ''"></textarea>
+
+                    <label class="admin-form__rotulo" for="solucao">Solução aplicada *</label>
+                    <textarea id="solucao" class="admin-form__texto admin-form__texto--curto" name="solucao" required
+                              maxlength="4000" placeholder="O que foi feito para resolver a solicitação"
+                              th:text="${secaoErro == 'devolutiva'} ? ${rascunhoSolucao} : ''"></textarea>
+
+                    <label class="admin-form__rotulo" for="observacoes">Observações adicionais</label>
+                    <textarea id="observacoes" class="admin-form__texto admin-form__texto--curto" name="observacoes"
+                              maxlength="4000" placeholder="Informações importantes que o cliente precisa saber"
+                              th:text="${secaoErro == 'devolutiva'} ? ${rascunhoObservacoes} : ''"></textarea>
+
+                    <label class="admin-form__check" th:if="${chamado.status != 'CONCLUIDO'}">
+                        <input type="checkbox" name="concluir" value="true"
+                               th:checked="${secaoErro == 'devolutiva' and rascunhoConcluir == true}">
+                        <span>Marcar a solicitação como <strong>Concluída</strong> ao enviar</span>
+                    </label>
+
+                    <button type="submit" class="admin-form__botao">Enviar devolutiva</button>
+                </form>
+            </section>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: rodape}"></footer>
+
+</body>
+</html>

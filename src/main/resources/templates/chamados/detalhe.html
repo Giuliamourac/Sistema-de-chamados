@@ -10,7 +10,7 @@
         <a th:href="@{/chamados}">Solicitações</a> &gt; <span>Detalhamento de solicitação</span>
     </p>
     <h1 class="pagina__titulo pagina__titulo--portal">Detalhamento de solicitação</h1>
-    <p class="pagina__subtitulo">Veja o detalhamento da sua solicitação</p>
+    <p class="pagina__subtitulo">Veja o detalhamento da sua solicitação e o status em que ela se encontra</p>
 
     <p class="alerta alerta--ok alerta--detalhe" th:if="${sucesso}" role="status">
         Recebemos a sua solicitação! Guarde o protocolo <strong th:text="${chamado.protocolo}">CH-2026-000000</strong>
@@ -30,6 +30,9 @@
                 </div>
 
                 <dl class="ficha">
+                    <dt>Data de solicitação</dt>
+                    <dd th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy ''às'' HH:mm')}">17/08/2026</dd>
+
                     <dt>Tipo de solicitação</dt>
                     <dd th:text="${chamado.tipoOcorrencia}"></dd>
 
@@ -70,57 +73,49 @@
             </section>
         </div>
 
-        <aside class="detalhe-card detalhe-card--historico">
-            <h2 class="detalhe-card__titulo">Histórico de solicitação</h2>
+        <div class="detalhe-coluna">
+            <!-- Status atual (somente leitura para o cliente) -->
+            <section class="detalhe-card detalhe-card--status">
+                <h2 class="detalhe-card__titulo">Status</h2>
+                <div class="status-atual">
+                    <span class="selo" th:classappend="'selo--' + ${chamado.statusClasse}"
+                          th:text="${chamado.statusRotulo}">Em andamento</span>
+                    <span class="status-atual__data" th:if="${chamado.dataConclusao != null and chamado.finalizado}"
+                          th:text="'desde ' + ${#temporals.format(chamado.dataConclusao, 'dd/MM/yyyy')}">desde 18/10/2026</span>
+                </div>
+                <p class="status-atual__dica" th:if="${chamado.statusClasse == 'cancelada'}">
+                    Dias para recorrer:
+                    <strong th:text="${chamado.diasParaRecorrer} + (${chamado.diasParaRecorrer == 1} ? ' dia' : ' dias')">15 dias</strong>
+                </p>
+            </section>
 
-            <ol class="linha-tempo">
-                <li>
-                    <p class="linha-tempo__data">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <circle cx="12" cy="12" r="10"/><polyline points="12 6.5 12 12 15.5 14"/>
-                        </svg>
-                        <span th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy')}">15/09/2026</span>
-                    </p>
-                    <p class="linha-tempo__texto">
-                        Criação da solicitação pelo usuário: <span th:text="${chamado.usuario.nome}">Nome</span>
-                    </p>
-                </li>
+            <!-- Devolutiva mais recente enviada pela equipe -->
+            <section class="detalhe-card detalhe-card--devolutiva" th:if="${devolutiva != null}">
+                <h2 class="detalhe-card__titulo">Resposta da equipe</h2>
+                <p class="detalhe-card__protocolo">
+                    Enviada em <span th:text="${#temporals.format(devolutiva.dataMovimentacao, 'dd/MM/yyyy ''às'' HH:mm')}">02/09/2026</span>
+                    por <span th:text="${devolutiva.usuario.nome}">Nome</span>
+                </p>
+                <dl class="devolutiva">
+                    <dt>Problema identificado</dt>
+                    <dd th:text="${devolutiva.problemaIdentificado}"></dd>
+                    <dt>Solução aplicada</dt>
+                    <dd th:text="${devolutiva.solucaoAplicada}"></dd>
+                    <th:block th:if="${devolutiva.observacoes != null}">
+                        <dt>Observações adicionais</dt>
+                        <dd th:text="${devolutiva.observacoes}"></dd>
+                    </th:block>
+                </dl>
+            </section>
 
-                <li th:if="${chamado.status == 'EM_ANDAMENTO'}">
-                    <p class="linha-tempo__data">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <circle cx="12" cy="12" r="10"/><polyline points="12 6.5 12 12 15.5 14"/>
-                        </svg>
-                        <span>Em andamento</span>
-                    </p>
-                    <p class="linha-tempo__texto">Solicitação foi aceita e se encontra em análise</p>
-                </li>
+            <aside class="detalhe-card detalhe-card--historico">
+                <h2 class="detalhe-card__titulo">Histórico de solicitação</h2>
+                <ol th:replace="~{fragments/layout :: linha-tempo(${movimentacoes})}"></ol>
 
-                <li th:if="${chamado.dataConclusao != null and chamado.statusClasse != 'em-andamento'}">
-                    <p class="linha-tempo__data">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <circle cx="12" cy="12" r="10"/><polyline points="12 6.5 12 12 15.5 14"/>
-                        </svg>
-                        <span th:text="${#temporals.format(chamado.dataConclusao, 'dd/MM/yyyy')}">18/10/2026</span>
-                    </p>
-                    <p class="linha-tempo__texto" th:if="${chamado.statusClasse == 'cancelada'}">
-                        Solicitação foi cancelada<span th:if="${chamado.solucaoAplicada != null and !chamado.solucaoAplicada.isBlank()}">;<br>
-                        Motivo: <span class="linha-tempo__motivo" th:text="${chamado.solucaoAplicada}"></span></span><br>
-                        Dias para recorrer: <span th:text="${chamado.diasParaRecorrer} + (${chamado.diasParaRecorrer == 1} ? ' dia' : ' dias')">15 dias</span>
-                    </p>
-                    <p class="linha-tempo__texto" th:if="${chamado.statusClasse == 'concluida'}">
-                        Solicitação foi concluída<span th:if="${chamado.solucaoAplicada != null and !chamado.solucaoAplicada.isBlank()}">;<br>
-                        Solução aplicada: <span class="linha-tempo__motivo" th:text="${chamado.solucaoAplicada}"></span></span>
-                    </p>
-                </li>
-            </ol>
-
-            <button type="button" class="btn-recorrer" th:if="${chamado.statusClasse == 'cancelada'}"
-                    disabled title="Recurso em breve">Recorrer</button>
-        </aside>
+                <button type="button" class="btn-recorrer" th:if="${chamado.statusClasse == 'cancelada'}"
+                        disabled title="Recurso em breve">Recorrer</button>
+            </aside>
+        </div>
     </div>
 </main>
 

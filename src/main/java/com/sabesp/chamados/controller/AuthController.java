@@ -18,6 +18,8 @@ public class AuthController {
 
     public static final String SESSAO_USUARIO_ID = "usuarioId";
     public static final String SESSAO_USUARIO_NOME = "usuarioNome";
+    /** Perfil (ADMIN, CLIENTE...). Serve só para a tela; as permissões são sempre conferidas no banco. */
+    public static final String SESSAO_USUARIO_TIPO = "usuarioTipo";
     /** Página para onde voltar depois do login (definida só pelo servidor, nunca vem do usuário). */
     public static final String SESSAO_DESTINO = "destinoLogin";
 
@@ -48,7 +50,11 @@ public class AuthController {
             HttpSession antiga = request.getSession(false);
             Object destino = antiga == null ? null : antiga.getAttribute(SESSAO_DESTINO);
             iniciarSessao(request, usuario);
-            return "redirect:" + (destino instanceof String d && d.startsWith("/") && !d.startsWith("//") ? d : "/");
+            if (destino instanceof String d && d.startsWith("/") && !d.startsWith("//")) {
+                return "redirect:" + d;
+            }
+            // Administrador cai direto no painel de chamados
+            return "ADMIN".equalsIgnoreCase(usuario.getTipo()) ? "redirect:/admin/chamados" : "redirect:/";
         } catch (UsuarioService.UsuarioException e) {
             form.setSenha(null); // nunca devolve a senha para a tela
             model.addAttribute("erro", e.getMessage());
@@ -97,5 +103,6 @@ public class AuthController {
         HttpSession sessao = request.getSession(true);
         sessao.setAttribute(SESSAO_USUARIO_ID, usuario.getIdUsuario());
         sessao.setAttribute(SESSAO_USUARIO_NOME, usuario.getNome());
+        sessao.setAttribute(SESSAO_USUARIO_TIPO, usuario.getTipo());
     }
 }
